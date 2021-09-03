@@ -1,8 +1,7 @@
 from PIL import Image, ImageDraw, ImageFont
 import socket
-
-width = 1920
-height = 1080
+import configparser
+import os
 
 try:
     host_name = socket.gethostname()
@@ -10,14 +9,28 @@ try:
 except:
     print("Unable to get Hostname and IP")
 
-img = Image.new('RGB', (width, height), color='#000000')
+config = configparser.ConfigParser()
+config.read("/home/pi/.config/pcmanfm/LXDE-pi/desktop-items-0.conf")
+wallpaper = config["*"]["wallpaper"]
 
-# get a font
-fnt = ImageFont.truetype("FreeMono.ttf", 40)
-# get a drawing context
-d = ImageDraw.Draw(img)
+split_path = wallpaper.split("/")
+split_path.pop()
+wallpaper_dir = "/".join(split_path)
 
-# draw multiline text
-d.multiline_text((100,100), host_name + "\n" + host_ip, font=fnt, fill=(255, 255, 255))
+with Image.open(wallpaper) as img:
 
-img.save("background.jpg")
+    # get a font
+    fnt = ImageFont.truetype("FreeMono.ttf", 40)
+    # get a drawing context
+    d = ImageDraw.Draw(img)
+
+    # draw multiline text
+    d.multiline_text((150,100), host_name + "\n" + host_ip, font=fnt, fill=(255, 255, 255))
+
+    img.save(wallpaper_dir + "/custom.jpg")
+    
+config["*"]["wallpaper"] = wallpaper_dir + "/custom.jpg"
+config["*"]["wallpaper_mode"] = "stretch"
+
+with open("/home/pi/.config/pcmanfm/LXDE-pi/desktop-items-0.conf", "w") as configfile:
+    config.write(configfile)
